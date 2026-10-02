@@ -76,6 +76,6 @@ window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!$('helpDi
 $('help').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();$('helpDialog').addEventListener('click',e=>{if(e.target===$('helpDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
 $('sound').onclick=()=>{sound=!sound;$('sound').textContent='声音 '+(sound?'开':'关');$('sound').setAttribute('aria-pressed',String(sound));$('sound').setAttribute('aria-label',sound?'关闭声音':'开启声音');if(sound)tone(580,.1,.04);};
 renderUI();requestAnimationFrame(tick);
-const read=()=>({stock:state.stock,stake:state.stake,phase:state.phase,multiplier:state.multiplier,litChannels:state.targets.map(i=>i+1),rounds:state.rounds});
+const read=(input={})=>{if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw new Error('状态查询不接受参数');return {stock:state.stock,stake:state.stake,phase:state.phase,multiplier:state.multiplier,litChannels:state.targets.map(i=>i+1),rounds:state.rounds};};
 if(document.modelContext?.registerTool){try{document.modelContext.registerTool({name:'read_egg_pachinko',title:'查看蛋珠机状态',description:'读取奶蛋库存、本局投入、倍率、亮灯通道及阶段。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:read});}catch{}}
 })();
