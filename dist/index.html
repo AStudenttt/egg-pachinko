@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#123e30"><meta name="description" content="蛋珠机：奶蛙世界的拉杆弹珠游戏。锁定亮灯通道，蓄力发射奶蛋，赢取更多虚拟奶蛋。"><title>蛋珠机 · Egg Pachinko</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23123e30'/%3E%3Cellipse cx='16' cy='17' rx='10' ry='12' fill='%23ffdc46'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"></head><body>
+<main class="arcade">
+<header class="topbar"><a class="wordmark" href="./" aria-label="蛋珠机首页"><span class="logo">蛋</span><div>蛋珠机<small>EGG PACHINKO</small></div></a><div class="top-actions"><span class="edition">奶蛙世界 · 01号机</span><button id="sound" class="icon-button" aria-label="开启声音" aria-pressed="false">声音 关</button><button id="help" class="icon-button" aria-label="查看玩法">玩法</button></div></header>
+<section class="game-layout" aria-label="蛋珠机游戏">
+<div class="machine-wrap"><div class="machine">
+<div class="marquee"><div class="marquee-copy"><span class="marquee-label">奶 蛋 出 没</span><h1>蛋珠机<span>!</span></h1></div><img class="mascot" id="mascot" src="assets/frog.png" alt="看热闹的奶蛙"><div class="marquee-stamp">今日宜<br><b>弹一下</b></div></div>
+<div class="cabinet"><div class="board-top"><span><i></i> 蛋已就位</span><span id="boardPhase">等待锁定</span></div><canvas id="board" width="540" height="740" aria-label="奶蛋从右侧发射轨道进入钉板区，最后落入底部通道"></canvas><div class="glass-glint"></div></div>
+<div class="machine-foot"><span>NAIWA AMUSEMENTS</span><span>★ 不许偷偷扶蛋 ★</span></div></div></div>
+<aside class="console">
+<div class="inventory"><span class="eyebrow">我的奶蛋</span><div class="inventory-number"><strong id="stock">100</strong><span>颗</span></div><div class="inventory-bottom"><span>本场最高 <b id="best">100</b></span><button id="reset" class="text-button">重新开局</button></div></div>
+<div class="control-panel"><div class="section-label"><span>01</span><h2>投入奶蛋</h2></div><div class="stake-control"><button id="minus" aria-label="减少投入">−</button><div><strong id="stake">1</strong><small>颗 / 局</small></div><button id="plus" aria-label="增加投入">＋</button></div><div class="stake-presets" aria-label="快速选择投入数量"><button data-stake="1" class="selected">1颗</button><button data-stake="5">5颗</button><button data-stake="10">10颗</button></div>
+<div class="section-label second"><span>02</span><h2>锁定好运</h2></div><div class="prize-panel"><div><span>本局倍率</span><strong id="multiplier">—<small>倍</small></strong></div><div><span>成功可得</span><strong id="reward">—<small>颗</small></strong></div></div><p class="target-note" id="targetNote">按下按钮，锁定亮灯通道</p><button id="lock" class="lock-button">锁定倍率 & 通道</button>
+<div class="section-label second"><span>03</span><h2>蓄力发射</h2></div><div class="charge-meter"><div id="chargeFill"></div><span id="chargeText">等待锁定</span></div><button id="launch" class="launch-button" disabled><span class="launch-symbol">◉</span><span id="launchLabel">按住蓄力 · 松开发射</span></button><p class="key-tip">电脑可按住空格键蓄力</p>
+</div>
+<div class="commentary" role="status" aria-live="polite"><span class="commentary-icon">!</span><div><b id="commentTitle">奶蛋：轮到我了？</b><p id="commentText">先锁定通道，再把我弹上去。</p></div></div>
+<div class="short-rules"><span>亮灯才算赢</span><p>进亮灯通道，获得投入 × 倍率的奶蛋。<br>库存归零可重新开局。</p></div>
+</aside></section><footer class="page-footer"><span>纯虚拟奶蛋 · 随时重新开局</span><span>EGG PACHINKO / FIRST PLAY</span></footer>
+</main>
+<dialog id="helpDialog"><button id="closeHelp" class="dialog-close" aria-label="关闭玩法">×</button><span class="eyebrow">怎么弹？</span><h2>让奶蛋走对门。</h2><ol><li>选择本局投入的奶蛋数。</li><li>锁定倍率和底部亮灯通道。</li><li>按住发射按钮或空格蓄力，松开发射。</li><li>奶蛋通过亮灯通道时，获得投入数 × 倍率。落入其他通道则没有奖励。</li></ol><p>每局只发射一颗母球。力度太小、没有进入钉板区时，可以再次蓄力，不重复扣除奶蛋。</p><p>倍率越高，亮灯通道越少。奶蛋的碰撞和落点由实际运动决定。</p></dialog>
+<script src="physics.js"></script><script src="game.js"></script></body></html>
