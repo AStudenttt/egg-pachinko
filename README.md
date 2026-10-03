@@ -1,25 +1,64 @@
-# 蛋珠机 · Egg Pachinko
+# Milk Egg Pachinko
+### 蛋珠机
 
-奶蛙世界的轻松网页小游戏。选择投入 → 锁定倍率和亮灯通道 → 按住蓄力、松开发射奶蛋母球 → 按实际落入通道结算。
+**English** · [简体中文](README.zh-CN.md)
 
-## 运行
+Charge it. Launch it. See where the egg ends up.
 
-无需安装依赖。用任意静态服务器服务 `dist` 目录，或在浏览器打开 `dist/index.html`。
+**[Play now](https://astudenttt.github.io/milk-egg-pachinko/dist/)** · [Report a bug](https://github.com/AStudenttt/milk-egg-pachinko/issues)
 
-- 手机：按住黄色发射按钮，松开发射。
-- 电脑：按住空格键，松开发射。
-- 库存初始 100 颗，每局最多投入 50 颗。
-- 锁定时扣除投入；中奖时加回投入 × 倍率。没有进入钉板区的弱发射可重试，不重复扣除。
-- 纯虚拟奶蛋，无支付、兑换或交易。
+## Meet Milk Egg
 
-## 实现
+Word has it that when Milk Frog fell from the sky, a yellow egg came down with it. Nobody knew who laid it or what was inside. People put it in a temple and waited for it to hatch. Years went by. Nothing. Then it rolled off the altar and cracked a floor tile. The egg? Not a scratch. They called it Milk Egg.
 
-静态 HTML/CSS/Canvas，无远程运行依赖。`dist/physics.js` 为固定 240Hz 的圆体/钉子/轨道碰撞；`dist/game.js` 为操作、灯光、音效与库存结算。发射力实际影响运动，落点没有预先指定。
+They tried boiling it. Roasting it. No luck. Then some guy with a spring launched it across the room. It bounced off a few metal pegs, dropped into a tiny slot, and somehow came out as a whole bunch of eggs. Everyone scrapped the altar and got busy building a machine.
 
-角色为根据用户确认的奶蛋/奶蛙参考生成的第一版游戏素材，后续可替换为用户审阅的正式素材。
+And that’s Milk Egg Pachinko. Nobody cares what’s gonna hatch anymore. They just wanna know how many eggs are coming out next.
 
-## GitHub Pages
+## One egg. Plenty of trouble.
 
-Settings → Pages → Deploy from a branch → main / (root)。根目录入口自动进入 `dist/`。
+An arcade-style pachinko game starring Milk Egg. Launch up the right-hand rail, bounce through the pegs, and aim for a lit channel at the bottom.
 
-第一版试玩：https://egg-pachinko.staygumii.chatgpt.site
+Choose how many eggs to put in, lock in the multiplier and winning channels, then charge your shot. The launch strength affects the egg’s actual movement—the landing channel is not chosen in advance.
+
+## How to play
+
+1. **Choose your stake:** Use + and −, with adjustment steps of 1, 5, or 10.
+2. **Start the round:** Lock in the multiplier and lit channels.
+3. **Charge and launch:** Hold the launch control, then release. On desktop, you can also hold and release Space.
+4. **Watch the landing:** A lit channel pays out your stake × the multiplier.
+
+You start with 100 eggs and can put in up to 50 per round. The stake is deducted when the round is locked. A shot too weak to reach the peg board can be retried without another deduction.
+
+## Play in your browser
+
+No download required. Supports desktop and touch screens.
+
+The game interface is currently in Chinese. All eggs are virtual: no payments, cash value, redemption, or trading.
+
+## Feedback
+
+Found a bug? Open an issue with a screenshot, your device and browser, and the steps that led to it.
+
+## Another little game
+
+Try **[Milk Frog Merge](https://github.com/AStudenttt/milk-frog-merge)**—drop matching frogs, merge them, and try not to run out of room.
+
+<details>
+<summary>Development notes</summary>
+
+### Run locally
+
+Serve the `dist` directory with any static web server. No dependency installation is required.
+
+### Implementation
+
+Static HTML, CSS, and Canvas, with no remote runtime dependencies. `dist/physics.js` handles circle, peg, and rail collisions at a fixed 240 Hz. `dist/game.js` handles controls, lights, sound, and inventory settlement.
+
+The character assets are an initial set generated from reviewed Milk Egg / Milk Frog references and can be replaced as the artwork is refined.
+
+### GitHub Pages
+
+Configure Pages to deploy from the `main` branch, using `/(root)`. The root entry redirects to `dist/`.
+
+</details>
