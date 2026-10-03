@@ -8,7 +8,7 @@
 .machine {touch-action:manipulation;}
 .machine img {pointer-events:none;-webkit-user-drag:none;}
 .machine button {touch-action:manipulation;}
-.control-deck,.control-deck *,.top-actions,.top-actions * {
+.machine .control-deck,.machine .control-deck *,.machine .top-actions,.machine .top-actions * {
   touch-action:none;
 }
 .round-flash {
