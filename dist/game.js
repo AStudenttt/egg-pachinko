@@ -2,13 +2,14 @@
 (()=>{
 const $=id=>document.getElementById(id),canvas=$('board'),ctx=canvas.getContext('2d'),P=EggPhysics;
 const egg=new Image();egg.src='assets/egg.png';
-const state={stock:100,best:100,stake:1,step:1,phase:'idle',multiplier:0,targets:[],charge:0,world:null,rounds:0,win:false};
-let chargeStart=0,lastTime=0,accumulator=0,clock=0,lockTimer=null,rollStep=0,sound=false,audio=null,lastTone=0,toastTimer=null;
+const state={stock:100,best:100,stake:1,step:1,phase:'idle',multiplier:0,targets:[],charge:0,world:null,rounds:0,win:false,retry:false};
+let chargeStart=0,lastTime=0,accumulator=0,clock=0,lockTimer=null,rollStep=0,sound=false,audio=null,lastTone=0,flashTimer=null;
 let particles=[],trail=[],ringHits=[];
 const launch=$('launch'),lock=$('lock');
 function randomInt(n){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;}
 function pickTargets(count){const all=Array.from({length:9},(_,i)=>i);for(let i=8;i>0;i--){const j=randomInt(i+1);[all[i],all[j]]=[all[j],all[i]];}return all.slice(0,count).sort((a,b)=>a-b);}
-function message(title,text){$('commentTitle').textContent=title;$('commentText').textContent=text;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3200);}
+function clearFlash(){clearTimeout(flashTimer);$('roundFlash').classList.remove('visible');}
+function flash(value,label,kind){clearFlash();$('flashValue').textContent=value;$('flashLabel').textContent=label;$('roundFlash').classList.toggle('payout',kind==='payout');$('roundFlash').classList.add('visible');flashTimer=setTimeout(clearFlash,kind==='payout'?1900:1300);}
 function renderUI(){
 $('stock').textContent=state.stock.toLocaleString();$('best').textContent=state.best.toLocaleString();$('stake').textContent=state.stake;
 $('multiplier').innerHTML=(state.multiplier||'—')+'<small>倍</small>';
@@ -19,7 +20,7 @@ lock.disabled=!editable||state.stock<state.stake;lock.textContent=state.phase===
 launch.disabled=!['locked','charging'].includes(state.phase);
 $('launchLabel').textContent=state.phase==='charging'?'松手':'蓄力';
 launch.classList.toggle('charging',state.phase==='charging');
-$('boardPhase').textContent=({idle:'等待启动',rolling:'好运转动中',locked:'按住蓄力',charging:'奶蛋准备起飞',flying:'蛋在路上'})[state.phase];
+$('boardPhase').textContent=state.phase==='idle'&&state.stock===0?'奶蛋用完，重新开局':state.phase==='locked'&&state.retry?'力度不足，再试一次':({idle:'等待启动',rolling:'好运转动中',locked:'按住蓄力',charging:'奶蛋准备起飞',flying:'蛋在路上'})[state.phase];
 $('chargeText').textContent=state.phase==='charging'?Math.round(state.charge*100)+'%':state.phase==='locked'?'按住蓄力':state.phase==='flying'?'咻——':'等待启动';
 $('chargeFill').style.height=(state.phase==='charging'?state.charge*100:0)+'%';
 launch.style.setProperty('--charge',state.phase==='charging'?state.charge:0);
@@ -27,17 +28,17 @@ $('reset').disabled=['rolling','charging','flying','locked'].includes(state.phas
 }
 function setStake(n){if(state.phase!=='idle')return false;state.stake=Math.max(1,Math.min(50,state.stock,Math.floor(n)));renderUI();return true;}
 function setStep(n){if(state.phase!=='idle'||![1,5,10].includes(n))return;state.step=n;renderUI();}
-function lockRound(){if(state.phase!=='idle'||state.stock<state.stake)return false;state.phase='rolling';state.win=false;rollStep=0;document.body.classList.remove('win');message('奶蛙：我来开个灯。','倍率越高，亮灯的通道越少。');renderUI();
-lockTimer=setInterval(()=>{state.multiplier=[2,3,5,10][randomInt(4)];state.targets=pickTargets(1+randomInt(4));tone(250+rollStep*28,.035,.02);renderUI();rollStep++;if(rollStep>=15){clearInterval(lockTimer);lockTimer=null;const m=[2,2,2,3,3,5,5,10][randomInt(8)];state.multiplier=m;state.targets=pickTargets(({2:5,3:4,5:2,10:1})[m]);state.stock-=state.stake;state.phase='locked';message('奶蛋：灯亮了，我上了。','按住蓄力，松开发射。力气会影响入场位置。');tone(630,.09,.045);renderUI();}},65);return true;
+function lockRound(){if(state.phase!=='idle'||state.stock<state.stake)return false;clearFlash();state.phase='rolling';state.win=false;state.retry=false;rollStep=0;document.body.classList.remove('win');renderUI();
+lockTimer=setInterval(()=>{state.multiplier=[2,3,5,10][randomInt(4)];state.targets=pickTargets(1+randomInt(4));tone(250+rollStep*28,.035,.02);renderUI();rollStep++;if(rollStep>=15){clearInterval(lockTimer);lockTimer=null;const m=[2,2,2,3,3,5,5,10][randomInt(8)];state.multiplier=m;state.targets=pickTargets(({2:5,3:4,5:2,10:1})[m]);state.stock-=state.stake;state.phase='locked';flash('×'+m,'本局倍率','multiplier');tone(630,.09,.045);renderUI();}},65);return true;
 }
-function beginCharge(){if(state.phase!=='locked')return;state.phase='charging';state.charge=0;chargeStart=performance.now();renderUI();}
+function beginCharge(){if(state.phase!=='locked')return;clearFlash();state.phase='charging';state.charge=0;chargeStart=performance.now();renderUI();}
 function releaseCharge(cancel=false){if(state.phase!=='charging')return;if(cancel){state.phase='locked';state.charge=0;renderUI();return;}
 const charge=Math.min(1,(performance.now()-chargeStart)/1100);fire(charge);}
-function fire(charge){if(!['locked','charging'].includes(state.phase))return false;state.phase='flying';state.charge=charge;state.world=new P.World(charge);trail=[];accumulator=0;tone(170+charge*400,.12,.04);message('奶蛋：这趟怎么没有安全带？','看准底部亮灯的通道。');renderUI();return true;}
-function settle(result){state.world=null;state.charge=0;if(result.retry){state.phase='locked';message('奶蛋：刚才那一下不算！','没进钉板区，重新蓄力即可，不会再次扣蛋。');renderUI();return;}
-state.phase='idle';state.rounds++;state.win=state.targets.includes(result.channel);if(state.win){const reward=state.stake*state.multiplier;state.stock+=reward;state.best=Math.max(state.best,state.stock);message('奶蛙：这蛋，走对门了！','通过'+(result.channel+1)+'号通道，获得 '+reward+' 颗奶蛋。');document.body.classList.add('win');setTimeout(()=>document.body.classList.remove('win'),1200);for(let i=0;i<42;i++)particles.push({x:P.LEFT+(result.channel+.5)*46,y:651,vx:(Math.random()-.5)*190,vy:-90-Math.random()*220,life:1.2+Math.random(),color:i%2?'#d1ff67':'#ffdc46'});[420,530,660,840].forEach((v,i)=>setTimeout(()=>tone(v,.13,.045),i*90));}else{message(state.stock?'奶蛋：我只是路过。':'奶蛋：库存真的被我弹没了。',state.stock?'落入'+(result.channel+1)+'号通道，没亮灯。下一颗会不会走对？':'点“重新开局”，再领100颗奶蛋。');tone(145,.16,.025);}
+function fire(charge){if(!['locked','charging'].includes(state.phase))return false;clearFlash();state.phase='flying';state.retry=false;state.charge=charge;state.world=new P.World(charge);trail=[];accumulator=0;tone(170+charge*400,.12,.04);renderUI();return true;}
+function settle(result){state.world=null;state.charge=0;if(result.retry){state.phase='locked';state.retry=true;renderUI();return;}
+state.phase='idle';state.rounds++;state.win=state.targets.includes(result.channel);if(state.win){const reward=state.stake*state.multiplier;state.stock+=reward;state.best=Math.max(state.best,state.stock);flash('+'+reward.toLocaleString(),'命中！奶蛋入账','payout');document.body.classList.add('win');setTimeout(()=>document.body.classList.remove('win'),1200);for(let i=0;i<42;i++)particles.push({x:P.LEFT+(result.channel+.5)*46,y:651,vx:(Math.random()-.5)*190,vy:-90-Math.random()*220,life:1.2+Math.random(),color:i%2?'#d1ff67':'#ffdc46'});[420,530,660,840].forEach((v,i)=>setTimeout(()=>tone(v,.13,.045),i*90));}else{tone(145,.16,.025);}
 if(state.stock>0)state.stake=Math.min(state.stake,state.stock);renderUI();}
-function reset(){if(state.phase!=='idle')return false;Object.assign(state,{stock:100,best:100,stake:1,step:1,phase:'idle',multiplier:0,targets:[],charge:0,world:null,rounds:0,win:false});particles=[];trail=[];ringHits=[];document.body.classList.remove('win');message('奶蛋：我又回来了。','100颗奶蛋已就位，随时开弹。');renderUI();return true;}
+function reset(){if(state.phase!=='idle')return false;clearFlash();Object.assign(state,{stock:100,best:100,stake:1,step:1,phase:'idle',multiplier:0,targets:[],charge:0,world:null,rounds:0,win:false,retry:false});particles=[];trail=[];ringHits=[];document.body.classList.remove('win');renderUI();return true;}
 function tone(freq,duration=.06,gain=.025){if(!sound)return;try{audio??=new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(freq,audio.currentTime);g.gain.setValueAtTime(gain,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+duration);}catch{sound=false;}}
 function rounded(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
 function circle(x,y,r,fill,stroke){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
@@ -72,6 +73,8 @@ if(state.phase==='charging'){state.charge=Math.min(1,(t-chargeStart)/1100);rende
 if(state.world&&state.phase==='flying'){accumulator+=elapsed;while(accumulator>=P.STEP&&state.world){const world=state.world,result=world.step();for(const h of world.hits){ringHits.push({...h,life:.5});if(t-lastTone>55){tone(h.tag==='bumper'?780:340+h.power*600,.04,.012+h.power*.012);lastTone=t;}}accumulator-=P.STEP;if(result)settle(result);}if(state.world){trail.push({x:state.world.ball.x,y:state.world.ball.y});if(trail.length>14)trail.shift();}}
 for(const p of particles){p.x+=p.vx*elapsed;p.y+=p.vy*elapsed;p.vy+=350*elapsed;p.life-=elapsed;}particles=particles.filter(p=>p.life>0);ringHits.forEach(p=>p.life-=elapsed);ringHits=ringHits.filter(p=>p.life>0);draw();}
 $('minus').onclick=()=>setStake(state.stake-state.step);$('plus').onclick=()=>setStake(state.stake+state.step);document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>setStep(Number(b.dataset.step)));lock.onclick=lockRound;$('reset').onclick=reset;
+// Restrict browser selection/callouts to the machine; help text remains selectable.
+['selectstart','contextmenu','dragstart','dblclick'].forEach(name=>$('machine').addEventListener(name,e=>e.preventDefault()));
 launch.addEventListener('pointerdown',e=>{if(state.phase!=='locked')return;e.preventDefault();launch.setPointerCapture(e.pointerId);beginCharge();});launch.addEventListener('pointerup',e=>{e.preventDefault();releaseCharge();});launch.addEventListener('pointercancel',()=>releaseCharge(true));launch.addEventListener('lostpointercapture',()=>releaseCharge(true));
 window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!$('helpDialog').open&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){e.preventDefault();beginCharge();}});window.addEventListener('keyup',e=>{if(e.code==='Space'){e.preventDefault();releaseCharge();}});window.addEventListener('blur',()=>releaseCharge(true));document.addEventListener('visibilitychange',()=>{lastTime=0;accumulator=0;if(document.hidden)releaseCharge(true);});
 $('help').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();$('helpDialog').addEventListener('click',e=>{if(e.target===$('helpDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
