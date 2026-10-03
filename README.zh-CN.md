@@ -1,3 +1,5 @@
+![Milk Egg Pachinko cover](cover.png)
+
 # 蛋珠机
 ### Milk Egg Pachinko
 
